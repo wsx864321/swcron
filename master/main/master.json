@@ -1,0 +1,7 @@
+{
+  "port": 9555,
+  "read_timeout": 5000,
+  "write_timeout": 5000,
+  "etcd_endpoints": "127.0.0.1:2379",
+  "etcd_dial_timeout":5000
+}
