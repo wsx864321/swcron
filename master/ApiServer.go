@@ -62,7 +62,7 @@ func handleJobDel(w http.ResponseWriter,r *http.Request){
 		goto ERR
 	}
 
-	JobName = r.PostForm.Get("jobName")
+	JobName = r.PostForm.Get("job_name")
 	oldJob,err = G_JobManager.DelJob(JobName)
 	if err != nil {
 		goto ERR
@@ -73,6 +73,32 @@ func handleJobDel(w http.ResponseWriter,r *http.Request){
 		goto ERR
 	}
 
+	return
+ERR:
+	common.ApiResponse(w, common.RESP_FAIL,err.Error(),nil)
+}
+//获取所有任务
+func handleJobList(w http.ResponseWriter,r *http.Request){
+	var (
+		jobList []*common.Job
+		err     error
+		data    map[string]*common.Job
+	)
+
+	jobList,err = G_JobManager.JobList()
+	if err != nil {
+		goto ERR
+	}
+
+	data = make(map[string]*common.Job)
+	for _,v := range jobList {
+		data[v.Name] = v
+	}
+
+	err = common.ApiResponse(w, common.RESP_OK, "", data)
+	if err != nil {
+		goto ERR
+	}
 	return
 ERR:
 	common.ApiResponse(w, common.RESP_FAIL,err.Error(),nil)
@@ -88,7 +114,8 @@ func InitServer() error {
 	//配置路由
 	mux = http.NewServeMux()
 	mux.HandleFunc("/job/save",handleJobSave)
-	mux.HandleFunc("/job/delete",handleJobDel)
+	mux.HandleFunc("/job/del",handleJobDel)
+	mux.HandleFunc("/job/list",handleJobList)
 	//监听端口
 	lister,err = net.Listen("tcp",":"+strconv.Itoa(G_config.Port))
 	if err != nil {

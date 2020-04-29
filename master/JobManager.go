@@ -79,7 +79,7 @@ func (jobManager *JobManager)SaveJob(job *common.Job) (*common.Job,error) {
 //删除定时任务
 func (jobManager *JobManager)DelJob(jobName string) (*common.Job,error) {
 	var (
-		err error
+		err    error
 		jobKey string
 		delRet *clientv3.DeleteResponse
 		oldJob common.Job
@@ -102,4 +102,30 @@ func (jobManager *JobManager)DelJob(jobName string) (*common.Job,error) {
 	}
 
 	return &oldJob,nil
+}
+//获取所有job
+func (jobManager *JobManager)JobList() ([]*common.Job, error) {
+	var (
+		getRet  *clientv3.GetResponse
+		err     error
+		job     *common.Job
+		jobList []*common.Job
+	)
+
+	getRet,err = jobManager.Kv.Get(context.TODO(),common.JOB_SAVE_DIR,clientv3.WithPrefix())
+	if err != nil {
+		return nil,err
+	}
+
+	jobList = make([]*common.Job,0)
+	for _,v := range getRet.Kvs {
+		job = new(common.Job)
+		err = json.Unmarshal([]byte(v.Value), job)
+		if err != nil {
+			continue
+		}
+		jobList = append(jobList, job)
+	}
+
+	return jobList,nil
 }
