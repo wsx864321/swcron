@@ -1,5 +1,4 @@
 package master
-
 import (
 	"../common"
 	"context"
@@ -128,4 +127,30 @@ func (jobManager *JobManager)JobList() ([]*common.Job, error) {
 	}
 
 	return jobList,nil
+}
+//杀死任务
+func (jobManager *JobManager)KillJob(jobName string) error {
+	var(
+		jobKey   string
+		leaseRet *clientv3.LeaseGrantResponse
+		err      error
+		leaseId  clientv3.LeaseID
+	)
+
+	jobKey = common.JOB_LILL_DIR+jobName
+	//让worker进程去监听put操作，创造一个租约，自动过期即可
+	leaseRet,err = jobManager.Lease.Grant(context.TODO(),1)
+	if err != nil {
+		return err
+	}
+	//租约ID
+	leaseId = leaseRet.ID
+	//设置killer的标记
+	_,err = jobManager.Kv.Put(context.TODO(),jobKey,"",clientv3.WithLease(leaseId))
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }

@@ -82,7 +82,6 @@ func handleJobList(w http.ResponseWriter,r *http.Request){
 	var (
 		jobList []*common.Job
 		err     error
-		data    map[string]*common.Job
 	)
 
 	jobList,err = G_JobManager.JobList()
@@ -90,16 +89,37 @@ func handleJobList(w http.ResponseWriter,r *http.Request){
 		goto ERR
 	}
 
-	data = make(map[string]*common.Job)
-	for _,v := range jobList {
-		data[v.Name] = v
-	}
-
-	err = common.ApiResponse(w, common.RESP_OK, "", data)
+	err = common.ApiResponse(w, common.RESP_OK, "", jobList)
 	if err != nil {
 		goto ERR
 	}
 	return
+ERR:
+	common.ApiResponse(w, common.RESP_FAIL,err.Error(),nil)
+}
+
+func handleKillJob(w http.ResponseWriter, r *http.Request){
+	var (
+		err     error
+		jobName string
+	)
+	err = r.ParseForm()
+	if err != nil {
+		goto ERR
+	}
+
+	jobName = r.PostForm.Get("job_name")
+	err = G_JobManager.KillJob(jobName)
+	if err != nil {
+		goto ERR
+	}
+
+	err = common.ApiResponse(w, common.RESP_OK, "", "")
+	if err != nil {
+		goto ERR
+	}
+	return
+
 ERR:
 	common.ApiResponse(w, common.RESP_FAIL,err.Error(),nil)
 }
@@ -110,12 +130,19 @@ func InitServer() error {
 		lister net.Listener
 		err error
 		httpServer *http.Server
+		staticDir http.Dir
 	)
 	//配置路由
 	mux = http.NewServeMux()
 	mux.HandleFunc("/job/save",handleJobSave)
 	mux.HandleFunc("/job/del",handleJobDel)
 	mux.HandleFunc("/job/list",handleJobList)
+	mux.HandleFunc("/job/kill",handleKillJob)
+
+	//静态文件目录
+	staticDir = http.Dir(G_config.Webroot)
+	mux.Handle("/",http.StripPrefix("/",http.FileServer(staticDir)))
+
 	//监听端口
 	lister,err = net.Listen("tcp",":"+strconv.Itoa(G_config.Port))
 	if err != nil {

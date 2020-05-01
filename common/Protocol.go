@@ -33,7 +33,8 @@ func ApiResponse(w http.ResponseWriter,code int,msg string,data interface{}) err
 	if err != nil {
 		return err
 	}
-
+	//设置响应头
+	w.Header().Set("Content-Type","application/json")
 	_,err = w.Write(ret)
 	if err != nil {
 		return err

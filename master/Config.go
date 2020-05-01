@@ -11,6 +11,7 @@ type Config struct {
 	WriteTimeout    int    `json:"write_timeout"`
 	EtcdEndpoints   string `json:"etcd_endpoints"`
 	EtcdDialTimeout int    `json:"etcd_dial_timeout"`
+	Webroot         string `json:"webroot"`
 }
 
 var(
