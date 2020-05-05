@@ -1,7 +1,7 @@
 package main
 
 import (
-	"../../master"
+	"../../worker"
 	"flag"
 	"fmt"
 	"runtime"
@@ -29,12 +29,12 @@ func main(){
 	//初始化线程数
 	initEnv()
 	//初始化配置
-	err = master.InitConfig(confDir)
+	err = worker.InitConfig(confDir)
 	if err != nil {
 		goto ERR
 	}
 	//初始化etcd管理器
-	err = master.InitJobManager()
+	err = worker.InitJobManager()
 	if err != nil {
 		goto ERR
 	}
