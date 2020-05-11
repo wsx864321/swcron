@@ -33,6 +33,11 @@ func main(){
 	if err != nil {
 		goto ERR
 	}
+	//初始化任务执行器
+	worker.InitExcutor()
+	//启动任务调度器
+	worker.InitScheduler()
+
 	//初始化etcd管理器
 	err = worker.InitJobManager()
 	if err != nil {

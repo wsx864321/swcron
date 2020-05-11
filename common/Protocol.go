@@ -31,6 +31,21 @@ type JobSchedulerPlan struct {
 	Expr     *cronexpr.Expression
 	NextTime time.Time
 }
+//任务执行状态
+type JobExcuteInfo struct {
+	Job *Job
+	PlanTime time.Time
+	RealTime time.Time
+}
+//任务执行返回结果
+type ExcuteJobResult struct {
+	ExCuteInfo *JobExcuteInfo
+	Output     []byte
+	Err        error
+	StartTime  time.Time
+	EndTime    time.Time
+}
+
 func ApiResponse(w http.ResponseWriter,code int,msg string,data interface{}) error {
 	var (
 		res Response
@@ -84,7 +99,7 @@ func BuildJobSchedulerPlan(job *Job) (*JobSchedulerPlan,error) {
 		err error
 		expr *cronexpr.Expression
 	)
-	expr,err = cronexpr.Parse(job.Command)
+	expr,err = cronexpr.Parse(job.CronExpr)
 	if err != nil {
 		return nil,err
 	}
@@ -94,4 +109,12 @@ func BuildJobSchedulerPlan(job *Job) (*JobSchedulerPlan,error) {
 		Expr:expr,
 		NextTime:expr.Next(time.Now()),
 	},nil
+}
+//构造执行计划
+func BuildJobExcuteInfo(plan *JobSchedulerPlan) *JobExcuteInfo {
+	return &JobExcuteInfo{
+		Job:plan.Job,
+		PlanTime:plan.NextTime,
+		RealTime:time.Now(),
+	}
 }
